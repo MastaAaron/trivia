@@ -17,6 +17,10 @@ const query = graphql`
   }
 `
 
+
+const isCorrect = question => question.answer === question.chosenAnswer
+
+
 export default function useQuizState() {
   const queryData = useStaticQuery(query)
   const questionPool = queryData?.allTriviaQuestion?.nodes || []
@@ -36,12 +40,16 @@ export default function useQuizState() {
   const answerQuestion = (chosenAnswer) => {
     setQuestions(produce(draft => {
       const activeQuestion = draft[currentIndex]
-      if (activeQuestion) activeQuestion.chosenAnswer = chosenAnswer
+      if (activeQuestion) {
+        activeQuestion.chosenAnswer = chosenAnswer
+        activeQuestion.isCorrect = isCorrect(activeQuestion)
+      }
     }))
     setCurrentIndex(currentIndex + 1)
   }
 
-  const quizState = { questions, currentIndex }
+  const score = questions.filter(isCorrect).length
+  const quizState = { questions, currentIndex, score }
 
   return [quizState, answerQuestion]
 }
